@@ -9,7 +9,7 @@ import { Application, createWindow } from './lib/window';
 
 // helper lib, provides exercise dependent prewritten Code
 import * as helper from './helper';
-import ImageWidget from './imageWidget';
+
 
 
 
@@ -24,9 +24,9 @@ import SphericalFixFragmentShader from './fixed.f.glsl?raw';
 
 import EnvironemntReflectionVertexShader from './environment.v.glsl?raw';
 import EnvironemntReflectionFragmentShader from './environment.f.glsl?raw';
+import { BufferGeometry } from 'three';
 
 
-var ImgWid : ImageWidget;
 var object : THREE.Mesh;
 var textureUsed : string;
 var texture : THREE.Texture;
@@ -34,6 +34,10 @@ var currVertexShader = uvVertexShader;
 var currFragmentShader = uvFragmentShader;
 var scene : THREE.Scene;
 var environment = false;
+
+
+
+
 
 // taken and modified from https://threejs.org/docs/#api/en/textures/DataArrayTexture
 function generateRGBConstTexture(r : number, g : number, b : number){
@@ -62,7 +66,7 @@ function generateRGBConstTexture(r : number, g : number, b : number){
 
 
 
-function setTexture(Ingrid : ImageWidget, value : string){
+function setTexture(value : string){
   var path = "src/textures/earth.jpg";
   switch (value){
     case  "Earth":
@@ -106,17 +110,17 @@ function setTexture(Ingrid : ImageWidget, value : string){
   }else if (value == "Light"){
     texture = generateRGBConstTexture(255,245,182);
   }
-  const canvas = new THREE.CanvasTexture(ImgWid.DrawingCanvas);
+
   var newMaterial = new THREE.RawShaderMaterial( {
     uniforms: {
       graph: {value: texture}, 
-      drawing: {value: canvas}
+      delta: {value: 0},
     },
     vertexShader: currVertexShader,
     fragmentShader: currFragmentShader
    });
   object.material = newMaterial;
-  Ingrid.setImage(path);
+
   if(environment){
     scene.background = texture;
     scene.background.mapping = THREE.EquirectangularReflectionMapping;
@@ -184,22 +188,22 @@ function setShader(value: string){
     case  "Spherical":
       currVertexShader = SphericalVertexShader;
       currFragmentShader = SphericalFragmentShader;
-      setTexture(ImgWid, textureUsed)
+      setTexture(textureUsed)
       break;
     case "UV attribute":
       currVertexShader = uvVertexShader;
       currFragmentShader = uvFragmentShader;
-      setTexture(ImgWid, textureUsed)
+      setTexture(textureUsed)
       break;
     case "Spherical (fixed)":
       currVertexShader = SphericalFixVertexShader;
       currFragmentShader = SphericalFixFragmentShader;
-      setTexture(ImgWid, textureUsed)
+      setTexture(textureUsed)
       break;
     case "Environment Mapping":
       currVertexShader = EnvironemntReflectionVertexShader;
       currFragmentShader = EnvironemntReflectionFragmentShader;
-      setTexture(ImgWid, textureUsed)
+      setTexture(textureUsed)
       break;
   }
 }
@@ -212,7 +216,7 @@ function callback(changed: utils.KeyValuePair<helper.Settings>) {
       setGeometry(object, changed.value)
       break;
     case "texture":
-      setTexture(ImgWid, changed.value);
+      setTexture(changed.value);
       break;
     case "shader":
       setShader(changed.value);
@@ -235,13 +239,11 @@ function callback(changed: utils.KeyValuePair<helper.Settings>) {
 }
 
 
-function clearCanvas(){
-  ImgWid.clearDrawing();
-}
+
 function main(){
   let root = Application("Texturing");
-  root.setLayout([["texture", "renderer"]]);
-  root.setLayoutColumns(["50%", "50%"]);
+  root.setLayout([["renderer"]]);
+  root.setLayoutColumns(["100%"]);
   root.setLayoutRows(["100%"]);
   // ---------------------------------------------------------------------------
   // create Settings and create GUI settings
@@ -251,19 +253,12 @@ function main(){
   // adds the callback that gets called on settings change
   settings.addCallback(callback);
   // ---------------------------------------------------------------------------
-  let textureDiv = createWindow("texture");
-  root.appendChild(textureDiv);
 
   // the image widget. Change the image with setImage
   // you can enable drawing with enableDrawing
   // and it triggers the event "updated" while drawing
-  ImgWid = new ImageWidget(textureDiv);
   textureUsed = "";
-  ImgWid.enableDrawing();
-  // @ts-ignore
-  ImgWid.DrawingCanvas.addEventListener("updated", (event) => {
-    setTexture(ImgWid, textureUsed);
-  });
+  
   // ---------------------------------------------------------------------------
   // create RenderDiv
 	let rendererDiv = createWindow("renderer");
@@ -291,14 +286,13 @@ function main(){
   });*/
   THREE.EquirectangularReflectionMapping
   object = new THREE.Mesh( createQuad(), new THREE.MeshBasicMaterial());
-  setTexture(ImgWid, "Earth")
+  setTexture("Earth")
   scene.add(object);
 
   let wid = new RenderWidget(rendererDiv, renderer, camera, scene, controls);
+  wid.Material = <THREE.RawShaderMaterial> object.material;
   wid.animate();
 
-  
-  settings.pen = clearCanvas;
   
 }
 

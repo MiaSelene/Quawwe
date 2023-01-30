@@ -4,7 +4,6 @@
 precision highp float;
 
 uniform sampler2D graph;
-uniform sampler2D drawing;
 
 // we have access to the same uniforms as in the vertex shader
 // = object.matrixWorld
@@ -36,7 +35,7 @@ void main()
   float v = asin(poshition[1])/pi + 0.5;
   vec2 uwU = vec2(u, v);
   //this colors all fragments (pixels) in the same color (RGBA)
- fragColor = texture(drawing, uwU) + texture(graph, uwU);
+ fragColor = texture(graph, uwU);
   
   //fragColor = vec4(texture[int(uwU[0])][int(uwU[2])], 1.0) ;
 }

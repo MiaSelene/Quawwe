@@ -23,6 +23,7 @@ uniform mat3 normalMatrix;
 // = camera position in world space
 uniform vec3 cameraPosition;
 
+uniform float delta;
 
 // default vertex attributes provided by Geometry and BufferGeometry
 in vec3 position;
@@ -34,6 +35,15 @@ out vec2 uwU;
 void main()
 {
   uwU = uv;
-  gl_Position = vec4(position[ 0], position[ 1], position[ 2], 1.0);
+  if(position[1]< -0.5) {
+     gl_Position = vec4(position[0], position[ 1], position[ 2], 1.0)
+     +vec4(-0.5, 0, 0.0, 0.0)*delta*(-position[1])
+     +vec4(0, -0.5, 0.0, 0.0)*(delta+0.5)*(-position[1])
+     +vec4(0, 0, 0.5, 0)*(delta+0.25)*(-position[1]);
+  }
+  else {
+     gl_Position = vec4(position[ 0], position[ 1], position[ 2], 1.0);
+  }
+  //gl_Position = vec4(position[ 0], position[ 1], position[ 2], 1.0)+vec4(-0.5, 0, 0.0, 0.0)*delta;
   gl_Position = (projectionMatrix * modelViewMatrix) * gl_Position;
 }

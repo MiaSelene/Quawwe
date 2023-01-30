@@ -3,6 +3,7 @@ import Stats from 'stats.js';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import type { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import type { Window } from "./window";
+import { RawShaderMaterial } from 'three';
 
 export default class RenderWidget{
   Parent: HTMLElement;
@@ -11,6 +12,8 @@ export default class RenderWidget{
   Scene: THREE.Scene;
   Stats: Stats;
   Controls: OrbitControls | TrackballControls | undefined;
+  Material: THREE.RawShaderMaterial;
+  delta: number;
 
   constructor(parent: HTMLElement | Window,
               renderer: THREE.WebGLRenderer,
@@ -22,6 +25,8 @@ export default class RenderWidget{
     this.Camera = camera;
     this.Scene = scene;
     this.Stats = new Stats();
+    this.delta = 0;
+
 
     this.Controls = controls;
     // append Stats to parent
@@ -66,5 +71,10 @@ export default class RenderWidget{
     this.update();
     this.preRenderHook();
     this.render();
+    this.delta += 0.1;
+    this.Material.uniforms.delta.value = this.delta;
+
+    this.Material.uniforms.delta.value =  Math.sin(this.delta) * 0.5;
+    this.Material.needsUpdate = true;
   }
 }
